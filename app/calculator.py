@@ -52,3 +52,4 @@ def mean(values):
     if not values:
         raise ValueError("Mean of empty list")
     return sum(values) / len(values)
+# temporary debug change
