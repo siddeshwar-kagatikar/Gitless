@@ -1,23 +1,19 @@
 #!/bin/bash
 set -e
 
-echo "Mistake C1 (Gitless): Partial commit prevented"
+echo "Mistake D1 (Git): Detached HEAD commit"
 
-# Modify implementation
-cat <<EOF >> app/calculator.py
+# Ensure we are on main
+git checkout main
 
-def cube(a):
-    return a * a * a
-EOF
+# Go to detached HEAD
+git checkout HEAD~1
 
-# Modify configuration
-cat <<EOF >> config/settings.yaml
-features:
-  - cube
-EOF
+# Make a change
+echo "# hotfix applied in detached HEAD" >> app/calculator.py
 
-# Gitless commits all tracked changes
-gl commit -m "Add cube operation"
+# Commit in detached HEAD
+git commit -am "Hotfix committed in detached HEAD"
 
-# Push using Git
+# Try to push to main
 git push origin main
