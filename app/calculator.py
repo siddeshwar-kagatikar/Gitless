@@ -53,3 +53,6 @@ def mean(values):
         raise ValueError("Mean of empty list")
     return sum(values) / len(values)
 # temporary debug change
+
+def cube(a):
+    return a * a * a

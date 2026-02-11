@@ -1,2 +1,4 @@
 app_name: calculator
 version: 1.0
+features:
+  - cube
