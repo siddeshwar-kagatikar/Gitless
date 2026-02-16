@@ -37,23 +37,25 @@ pipeline {
                     }
                 }
 
-                // Commented out per your request, but structure is ready
-                /*
-                stage('Gitless Experiments') {
-                    steps {
-                        sh '''
-                            cd scripts/gitless
-                            for script in *.sh; do
-                                if [ -f "$script" ]; then
-                                    echo "Running Gitless: $script"
-                                    chmod +x "$script"
-                                    ./"$script"
-                                fi
-                            done
-                        '''
-                    }
-                }
-                */
+                // stage('Gitless Experiments') {
+                //     steps {
+                //         sh '''
+                //             # Only run if the directory exists
+                //             if [ -d "scripts/gitless" ]; then
+                //                 for script in scripts/gitless/*.sh; do
+                //                     if [ -f "$script" ]; then
+                //                         echo "------------------------------------------"
+                //                         echo "Running Gitless: $script"
+                //                         chmod +x "$script"
+                                        
+                //                         # Ensuring the pipeline doesn't stop on Gitless errors
+                //                         ./"$script" || echo "Gitless script $script failed, continuing..."
+                //                     fi
+                //                 done
+                //             fi
+                //         '''
+                //     }
+                // }
             }
         }
     }
