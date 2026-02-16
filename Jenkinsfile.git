@@ -22,12 +22,15 @@ pipeline {
                 stage('Git Experiments') {
                     steps {
                         sh '''
+                            # Iterate through your git mistake scripts
                             for script in scripts/git/*.sh; do
                                 if [ -f "$script" ]; then
+                                    echo "------------------------------------------"
                                     echo "Running: $script"
                                     chmod +x "$script"
-                                    # Run from root so 'app/' is visible
-                                    ./"$script"
+                                    
+                                    # Use '|| true' to force the loop to continue even if the script fails
+                                    ./"$script" || echo "Script $script failed, but moving to next..."
                                 fi
                             done
                         '''
