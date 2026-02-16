@@ -2,19 +2,18 @@ pipeline {
     agent any
 
     environment {
-        // Ensuring Jenkins finds your Mac's Homebrew and Python paths
-        PATH = "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
+        PATH = "/usr/local/bin:${env.PATH}"
     }
 
     stages {
-        stage('Environment Setup') {
+        stage('Setup Python Environment') {
             steps {
-                sh '''
-                    python3 -m pip install --upgrade pip
-                    if [ -f requirements.txt ]; then
-                        python3 -m pip install -r requirements.txt
-                    fi
-                '''
+                sh """
+                    python3 -m venv venv
+                    . venv/bin/activate
+                    pip install --upgrade pip
+                    pip install -r requirements.txt
+                """
             }
         }
 
