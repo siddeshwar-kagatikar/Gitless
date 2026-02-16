@@ -1,30 +1,22 @@
 pipeline {
     agent any
 
+    environment {
+        // Ensuring Jenkins can find Homebrew and Anaconda binaries
+        PATH = "/opt/homebrew/bin:/opt/anaconda3/bin:$PATH"
+    }
 
     stages {
         stage('Environment Setup') {
             steps {
+                echo 'Setting up environment using Conda and Pip...'
                 sh '''
-                    # 1. Dynamically find the Homebrew path
-                    BREW_PREFIX=$(brew --prefix libgit2)
+                    # 1. Update Conda and install C-dependencies/Gitless
+                    conda install -y -c conda-forge pygit2 gitless
                     
-                    # 2. Set strict flags for the compiler and linker
-                    export LDFLAGS="-L${BREW_PREFIX}/lib"
-                    export CPPFLAGS="-I${BREW_PREFIX}/include"
-                    export PKG_CONFIG_PATH="${BREW_PREFIX}/lib/pkgconfig"
-                    
-                    # 3. Explicitly tell pygit2 where libgit2 is during build
-                    export LIBGIT2=${BREW_PREFIX}
-
-                    # 4. Clean install to avoid using a corrupted/cached wheel
-                    python3 -m pip install --upgrade pip
-                    python3 -m pip install --no-cache-dir pygit2
-                    
-                    # 5. Install the rest
-                    python3 -m pip install gitless
+                    # 2. Install any remaining python dependencies
                     if [ -f requirements.txt ]; then
-                        python3 -m pip install -r requirements.txt
+                        pip install -r requirements.txt
                     fi
                 '''
             }
@@ -38,7 +30,7 @@ pipeline {
                             script {
                                 def scripts = findFiles(glob: '*.sh')
                                 scripts.each { file ->
-                                    echo "Running Git experiment: ${file.name}"
+                                    echo "Executing: ${file.name}"
                                     sh "chmod +x ${file.name} && ./${file.name}"
                                 }
                             }
@@ -52,7 +44,7 @@ pipeline {
                             script {
                                 def scripts = findFiles(glob: '*.sh')
                                 scripts.each { file ->
-                                    echo "Running Gitless experiment: ${file.name}"
+                                    echo "Executing Gitless: ${file.name}"
                                     sh "chmod +x ${file.name} && ./${file.name}"
                                 }
                             }
@@ -66,7 +58,6 @@ pipeline {
     post {
         always {
             echo 'Archiving experiment results...'
-            // This captures any output logs or data generated in your results folder
             archiveArtifacts artifacts: 'results/**/*', allowEmptyArchive: true
         }
     }
