@@ -21,13 +21,12 @@ pipeline {
             parallel {
                 stage('Git Experiments') {
                     steps {
-                        // Use standard shell logic instead of findFiles
                         sh '''
-                            cd scripts/git
-                            for script in *.sh; do
+                            for script in scripts/git/*.sh; do
                                 if [ -f "$script" ]; then
                                     echo "Running: $script"
                                     chmod +x "$script"
+                                    # Run from root so 'app/' is visible
                                     ./"$script"
                                 fi
                             done
