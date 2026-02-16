@@ -6,15 +6,25 @@ pipeline {
         stage('Environment Setup') {
             steps {
                 sh '''
-                    # Direct pip to Homebrew's include/lib paths for pygit2
-                    export LDFLAGS="-L/opt/homebrew/opt/libgit2/lib"
-                    export CPPFLAGS="-I/opt/homebrew/opt/libgit2/include"
-                    export PKG_CONFIG_PATH="/opt/homebrew/opt/libgit2/lib/pkgconfig"
+                    # 1. Dynamically find the Homebrew path
+                    BREW_PREFIX=$(brew --prefix libgit2)
+                    
+                    # 2. Set strict flags for the compiler and linker
+                    export LDFLAGS="-L${BREW_PREFIX}/lib"
+                    export CPPFLAGS="-I${BREW_PREFIX}/include"
+                    export PKG_CONFIG_PATH="${BREW_PREFIX}/lib/pkgconfig"
+                    
+                    # 3. Explicitly tell pygit2 where libgit2 is during build
+                    export LIBGIT2=${BREW_PREFIX}
 
+                    # 4. Clean install to avoid using a corrupted/cached wheel
                     python3 -m pip install --upgrade pip
+                    python3 -m pip install --no-cache-dir pygit2
+                    
+                    # 5. Install the rest
                     python3 -m pip install gitless
                     if [ -f requirements.txt ]; then
-                        pip install -r requirements.txt
+                        python3 -m pip install -r requirements.txt
                     fi
                 '''
             }
