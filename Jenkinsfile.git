@@ -22,17 +22,24 @@ pipeline {
                 stage('Git Experiments') {
                     steps {
                         sh '''
-                            # Iterate through your git mistake scripts
+                            # Disable 'exit on error' for this block
+                            set +e 
+                            
                             for script in scripts/git/*.sh; do
                                 if [ -f "$script" ]; then
-                                    echo "------------------------------------------"
                                     echo "Running: $script"
                                     chmod +x "$script"
+                                    ./"$script"
                                     
-                                    # Use '|| true' to force the loop to continue even if the script fails
-                                    ./"$script" || echo "Script $script failed, but moving to next..."
+                                    # We can manually check the status if we want to log it
+                                    if [ $? -ne 0 ]; then
+                                        echo "Result: $script failed, but the loop continues."
+                                    fi
                                 fi
                             done
+                            
+                            # Re-enable if there were subsequent commands you wanted to protect
+                            set -e 
                         '''
                     }
                 }
