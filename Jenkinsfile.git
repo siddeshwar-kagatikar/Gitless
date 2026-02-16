@@ -1,20 +1,14 @@
 pipeline {
     agent any
-
-    environment {
-        // Ensuring Jenkins can find Homebrew and Anaconda binaries
-        PATH = "/opt/homebrew/bin:/opt/anaconda3/bin:$PATH"
-    }
+    
 
     stages {
         stage('Environment Setup') {
             steps {
-                echo 'Setting up environment using Conda and Pip...'
+                echo 'Installing global dependencies...'
                 sh '''
-                    # 1. Update Conda and install C-dependencies/Gitless
-                    conda install -y -c conda-forge pygit2 gitless
-                    
-                    # 2. Install any remaining python dependencies
+                    python3 -m pip install --upgrade pip
+                    python3 -m pip install gitless
                     if [ -f requirements.txt ]; then
                         pip install -r requirements.txt
                     fi
@@ -30,7 +24,7 @@ pipeline {
                             script {
                                 def scripts = findFiles(glob: '*.sh')
                                 scripts.each { file ->
-                                    echo "Executing: ${file.name}"
+                                    echo "Running Git experiment: ${file.name}"
                                     sh "chmod +x ${file.name} && ./${file.name}"
                                 }
                             }
@@ -44,7 +38,7 @@ pipeline {
                             script {
                                 def scripts = findFiles(glob: '*.sh')
                                 scripts.each { file ->
-                                    echo "Executing Gitless: ${file.name}"
+                                    echo "Running Gitless experiment: ${file.name}"
                                     sh "chmod +x ${file.name} && ./${file.name}"
                                 }
                             }
@@ -58,6 +52,7 @@ pipeline {
     post {
         always {
             echo 'Archiving experiment results...'
+            // This captures any output logs or data generated in your results folder
             archiveArtifacts artifacts: 'results/**/*', allowEmptyArchive: true
         }
     }
