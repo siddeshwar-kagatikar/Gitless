@@ -1,12 +1,16 @@
 pipeline {
     agent any
-    
+
 
     stages {
         stage('Environment Setup') {
             steps {
-                echo 'Installing global dependencies...'
                 sh '''
+                    # Direct pip to Homebrew's include/lib paths for pygit2
+                    export LDFLAGS="-L/opt/homebrew/opt/libgit2/lib"
+                    export CPPFLAGS="-I/opt/homebrew/opt/libgit2/include"
+                    export PKG_CONFIG_PATH="/opt/homebrew/opt/libgit2/lib/pkgconfig"
+
                     python3 -m pip install --upgrade pip
                     python3 -m pip install gitless
                     if [ -f requirements.txt ]; then
