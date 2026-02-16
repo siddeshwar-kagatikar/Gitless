@@ -1,0 +1,58 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Environment Setup') {
+            steps {
+                echo 'Installing global dependencies...'
+                sh '''
+                    python3 -m pip install --upgrade pip
+                    python3 -m pip install gitless
+                    if [ -f requirements.txt ]; then
+                        pip install -r requirements.txt
+                    fi
+                '''
+            }
+        }
+
+        stage('Run Experiments') {
+            parallel {
+                stage('Git Experiments') {
+                    steps {
+                        dir('scripts/git') {
+                            script {
+                                def scripts = findFiles(glob: '*.sh')
+                                scripts.each { file ->
+                                    echo "Running Git experiment: ${file.name}"
+                                    sh "chmod +x ${file.name} && ./${file.name}"
+                                }
+                            }
+                        }
+                    }
+                }
+
+                stage('Gitless Experiments') {
+                    steps {
+                        dir('scripts/gitless') {
+                            script {
+                                def scripts = findFiles(glob: '*.sh')
+                                scripts.each { file ->
+                                    echo "Running Gitless experiment: ${file.name}"
+                                    sh "chmod +x ${file.name} && ./${file.name}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            echo 'Archiving experiment results...'
+            // This captures any output logs or data generated in your results folder
+            archiveArtifacts artifacts: 'results/**/*', allowEmptyArchive: true
+        }
+    }
+}
