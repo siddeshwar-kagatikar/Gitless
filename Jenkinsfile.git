@@ -1,16 +1,18 @@
 pipeline {
     agent any
-    
+
+    environment {
+        // Ensuring Jenkins finds your Mac's Homebrew and Python paths
+        PATH = "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
+    }
 
     stages {
         stage('Environment Setup') {
             steps {
-                echo 'Installing global dependencies...'
                 sh '''
                     python3 -m pip install --upgrade pip
-                    
                     if [ -f requirements.txt ]; then
-                        pip install -r requirements.txt
+                        python3 -m pip install -r requirements.txt
                     fi
                 '''
             }
@@ -20,39 +22,45 @@ pipeline {
             parallel {
                 stage('Git Experiments') {
                     steps {
-                        dir('scripts/git') {
-                            script {
-                                def scripts = findFiles(glob: '*.sh')
-                                scripts.each { file ->
-                                    echo "Running Git experiment: ${file.name}"
-                                    sh "chmod +x ${file.name} && ./${file.name}"
-                                }
-                            }
-                        }
+                        // Use standard shell logic instead of findFiles
+                        sh '''
+                            cd scripts/git
+                            for script in *.sh; do
+                                if [ -f "$script" ]; then
+                                    echo "Running: $script"
+                                    chmod +x "$script"
+                                    ./"$script"
+                                fi
+                            done
+                        '''
                     }
                 }
 
-                // stage('Gitless Experiments') {
-                //     steps {
-                //         dir('scripts/gitless') {
-                //             script {
-                //                 def scripts = findFiles(glob: '*.sh')
-                //                 scripts.each { file ->
-                //                     echo "Running Gitless experiment: ${file.name}"
-                //                     sh "chmod +x ${file.name} && ./${file.name}"
-                //                 }
-                //             }
-                //         }
-                //     }
-                // }
+                // Commented out per your request, but structure is ready
+                /*
+                stage('Gitless Experiments') {
+                    steps {
+                        sh '''
+                            cd scripts/gitless
+                            for script in *.sh; do
+                                if [ -f "$script" ]; then
+                                    echo "Running Gitless: $script"
+                                    chmod +x "$script"
+                                    ./"$script"
+                                fi
+                            done
+                        '''
+                    }
+                }
+                */
             }
         }
     }
 
     post {
         always {
-            echo 'Archiving experiment results...'
-            // This captures any output logs or data generated in your results folder
+            // Using archiveArtifacts (which is in your allowed list) 
+            // to save results from your experiments
             archiveArtifacts artifacts: 'results/**/*', allowEmptyArchive: true
         }
     }
