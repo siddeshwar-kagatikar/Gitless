@@ -57,3 +57,6 @@ def mean(values):
 def cube(a):
     return a * a * a
 # temporary debug change
+
+def cube(a):
+    return a * a * a
